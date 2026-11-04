@@ -1,0 +1,484 @@
+.app {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+/* ── 상단 ── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.brand-mark {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 22px;
+  color: var(--accent);
+}
+.brand-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+.week {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.week-big {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--text);
+}
+.progress {
+  flex: 1;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.4s;
+}
+.ghost {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--muted);
+}
+.ghost:hover {
+  color: var(--text);
+}
+
+/* ── 레이아웃 ── */
+.layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 320px;
+  gap: 18px;
+  margin-top: 18px;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+}
+.card h3 {
+  margin: 0 0 12px;
+  font-size: 17px;
+}
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+.divider {
+  height: 1px;
+  background: var(--line);
+  margin: 12px 0;
+}
+
+/* ── 프로필 ── */
+.profile {
+  padding: 0;
+  overflow: hidden;
+}
+.card-band {
+  background: var(--accent);
+  color: #2a1218;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  padding: 8px 18px;
+  font-family: ui-monospace, monospace;
+}
+.profile-body {
+  display: flex;
+  gap: 14px;
+  padding: 18px;
+}
+.profile h2 {
+  margin: 0 0 6px;
+  font-family: 'Noto Serif KR', serif;
+}
+.avatar {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  color: var(--muted);
+}
+.kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  margin: 0;
+  font-size: 14px;
+}
+.kv dt {
+  color: var(--muted);
+}
+.kv dd {
+  margin: 0;
+}
+
+/* ── 막대 ── */
+.stat {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  font-size: 14px;
+}
+.stat b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.stat.mini {
+  grid-template-columns: 32px 1fr 28px;
+  margin: 3px 0;
+  font-size: 12px;
+}
+.bar {
+  height: 8px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s;
+  background: var(--good);
+}
+.bar-fill.looks {
+  background: #d98aa0;
+}
+.bar-fill.personality {
+  background: #8fc7a8;
+}
+.bar-fill.fashion {
+  background: #c9a2e0;
+}
+.bar-fill.wealth {
+  background: #e0c37a;
+}
+.bar-fill.academics {
+  background: #7fb4e0;
+}
+.bar-fill.popularity {
+  background: #e09a7a;
+}
+.bar-fill.mental {
+  background: #a0b8d8;
+}
+.bar-fill.energy {
+  background: #8fd0c0;
+}
+.bar-fill.h {
+  background: var(--accent);
+}
+.bar-fill.t {
+  background: #7fb4e0;
+}
+.tier {
+  margin: -2px 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tier-위축,
+.tier-번아웃 {
+  color: var(--warn);
+}
+.tier-자신감 {
+  color: var(--good);
+}
+
+/* ── 가운데 ── */
+.center .card {
+  padding: 22px;
+}
+.event-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.tag {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.warn {
+  color: var(--warn);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+.event-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.portrait {
+  width: 180px;
+  flex: none;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line);
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  object-position: top;
+}
+.event-text h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+.event-text p {
+  margin: 0 0 10px;
+  color: #c9ced4;
+}
+.event-text p.line {
+  color: var(--text);
+  font-weight: 500;
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+}
+.choices {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.choices button {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: border-color 0.15s, background 0.15s;
+}
+.choices button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.choices button:disabled {
+  opacity: 0.5;
+}
+.num {
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+}
+.lock {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--warn);
+  margin-left: auto;
+}
+
+/* ── 결과 카드 ── */
+.notice h3,
+.notice h2 {
+  margin-top: 0;
+}
+.reaction {
+  font-size: 16px;
+  color: var(--text);
+}
+.changes {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.changes li {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+}
+.primary {
+  background: var(--accent);
+  color: #2a1218;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-weight: 700;
+}
+.primary:disabled {
+  opacity: 0.4;
+}
+.teaser {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin: 8px 0 18px;
+}
+.teaser img {
+  width: 90px;
+  border-radius: 8px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: top;
+  background: var(--panel-2);
+}
+
+/* ── 계획 ── */
+.chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.chip {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.chip small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.chip .cost {
+  color: #a9b0b8;
+}
+.chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.chip:disabled {
+  opacity: 0.35;
+}
+.plan-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.neg {
+  color: var(--bad);
+}
+
+/* ── 관계 ── */
+.rel {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.rel:first-of-type {
+  border-top: none;
+}
+.rel img {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 8px;
+  object-fit: cover;
+  object-position: center 8%;
+  background: var(--panel-2);
+}
+.rel.unknown img {
+  filter: brightness(0) opacity(0.5);
+}
+.rel-info {
+  flex: 1;
+  min-width: 0;
+}
+.rel-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+/* ── 기록 ── */
+.log ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 340px;
+  overflow: auto;
+  font-size: 13px;
+}
+.log li {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+
+/* ── 반응형 ── */
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .center {
+    order: -1;
+  }
+}
+@media (max-width: 600px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .progress {
+    order: 5;
+    flex-basis: 100%;
+  }
+  .event-body {
+    flex-direction: column;
+    align-items: center;
+  }
+  .portrait {
+    width: 150px;
+  }
+  .center .card {
+    padding: 16px;
+  }
+}
