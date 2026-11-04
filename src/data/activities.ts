@@ -1,10 +1,11 @@
 import type { ActivityDef } from '../game/types'
+import { ROMANCE_ACTIVITIES } from './romance'
 
 export const ACTIVITIES: ActivityDef[] = [
   {
     id: 'study',
     name: '공부',
-    desc: '학업 +3',
+    desc: '두뇌 +3',
     energy: 3,
     perWeek: 2,
     effects: [{ stat: 'academics', delta: 3 }],
@@ -65,7 +66,7 @@ export const ACTIVITIES: ActivityDef[] = [
     desc: '하늘 H+2 T+1',
     energy: 1,
     perWeek: 1,
-    effects: [{ rel: 'haneul', h: 2, t: 1, group: 'talk' }],
+    effects: [{ rel: 'haneul', h: 2, t: 1, group: 'talk' }, { addVar: 'meals', delta: 1 }],
   },
   {
     id: 'shop',
@@ -75,6 +76,15 @@ export const ACTIVITIES: ActivityDef[] = [
     perWeek: 1,
     requires: { all: [{ flag: 'noona_e06_done' }, { notFlag: 'noona_secret_leaked' }] },
     effects: [{ rel: 'seorin', t: 2, group: 'help' }],
+  },
+  {
+    id: 'helpOthers',
+    name: '다른 과 과제 도와주기',
+    desc: '도전 미션 중 · 성격 +1',
+    energy: 2,
+    perWeek: 1,
+    requires: { flag: 'mission_c02_active' },
+    effects: [{ stat: 'personality', delta: 1 }, { addVar: 'helpedOthers', delta: 1 }],
   },
   {
     id: 'rest',
@@ -102,6 +112,7 @@ export const ACTIVITIES: ActivityDef[] = [
     exclusive: true,
     effects: [{ special: 'recovery' }],
   },
+  ...ROMANCE_ACTIVITIES,
 ]
 
 export const activityById = (id: string) => {

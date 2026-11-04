@@ -4,6 +4,7 @@
  */
 import type { Condition, Effect, EventDef } from '../game/types'
 import { PORTRAITS } from './characters'
+import { ROMANCE_EVENTS } from './romance'
 
 const CONFIDENT: Condition = { mental: { min: 50 } }
 const CONFIDENT_HINT = '멘탈 50 이상 필요'
@@ -40,6 +41,13 @@ const awareReward: Effect[] = [
   },
   { setFlag: 'friend_aware' },
   { setFlag: 'e11_done' },
+  {
+    notice: {
+      kind: 'diary',
+      title: '회귀자의 일기',
+      text: "'이날 하늘은 돌아섰다.' 그 문장이 번지더니, 처음 보는 한 줄이 나타났다. '여기서부터는 나도 모르는 미래다.'",
+    },
+  },
 ]
 
 export const EVENTS: EventDef[] = [
@@ -60,13 +68,13 @@ export const EVENTS: EventDef[] = [
       {
         id: 'lonely',
         text: '"솔직히… 좀 외롭다. 아는 사람이 하나도 없어."',
-        effects: [{ mental: 6 }, { rel: 'haneul', h: 1, t: 3, group: 'talk' }, { setFlag: 'told_friend' }],
+        effects: [{ mental: 6 }, { rel: 'haneul', h: 1, t: 3, group: 'talk' }, { setFlag: 'told_friend' }, { setFlag: 'e01_opened' }],
         reaction: '하늘이가 젓가락을 멈추고 한참 보더니 웃는다. "그럼 나 있잖아. 바보냐."',
       },
       {
         id: 'fine',
         text: '"괜찮아. 할 만해."',
-        effects: [{ mental: 2 }, { rel: 'haneul', t: -1 }],
+        effects: [{ mental: 2 }, { rel: 'haneul', t: -1 }, { setFlag: 'e01_opened' }],
         reaction: '"표정은 안 괜찮은데." 하늘이는 더 묻지 않고 반찬을 하나 덜어 준다.',
       },
       {
@@ -80,6 +88,7 @@ export const EVENTS: EventDef[] = [
         text: '"중간고사 끝나는 날(7주 토요일) PC방 가자."',
         effects: [
           { setFlag: 'promise_pc' },
+          { setFlag: 'e01_opened' },
           { reserveEnergy: { week: 7, amount: 2, key: 'pc' } },
         ],
         reaction: '"오, 콜. 지는 사람이 떡볶이." 하늘이가 새끼손가락을 내민다. 초등학생도 아니고.',
@@ -138,7 +147,7 @@ export const EVENTS: EventDef[] = [
       {
         id: 'pick',
         text: '같이 주워 준다',
-        effects: [{ meet: 'seoyun' }, { rel: 'seoyun', h: 2, t: 2, group: 'help' }],
+        effects: [{ meet: 'seoyun' }, { rel: 'seoyun', h: 2, t: 2, group: 'help' }, { setFlag: 'seoyun_helped' }],
         reaction: '"아, 교양 옆자리… 맞죠?" 그녀가 책을 받아 들며 웃는다. "한서윤이에요."',
       },
       {
@@ -163,13 +172,13 @@ export const EVENTS: EventDef[] = [
       {
         id: 'name',
         text: '이름을 말하고 "괜찮아요" 한마디',
-        effects: [{ rel: 'seoyun', h: 2, t: 1, group: 'talk' }],
+        effects: [{ rel: 'seoyun', h: 2, t: 1, group: 'talk' }, { setFlag: 'e03_talk' }],
         reaction: '"한서윤이에요. 저도 2학년." 그녀가 고개를 끄덕인다.',
       },
       {
         id: 'note',
         text: '포스트잇에 답장을 써서 돌려준다',
-        effects: [{ rel: 'seoyun', h: 3, t: 2, group: 'talk' }, { setFlag: 'note_exchange' }],
+        effects: [{ rel: 'seoyun', h: 3, t: 2, group: 'talk' }, { setFlag: 'note_exchange' }, { setFlag: 'e03_talk' }],
         reaction: '포스트잇을 읽은 그녀가 입을 가리고 웃는다. 수업이 끝날 때 노트 사이에 한 장이 더 끼워져 있었다.',
       },
       {
@@ -370,7 +379,7 @@ export const EVENTS: EventDef[] = [
       {
         id: 'game',
         text: '게임하면서 수다 떤다',
-        effects: [{ rel: 'haneul', h: 2, group: 'talk' }],
+        effects: [{ rel: 'haneul', h: 2, group: 'talk' }, { setFlag: 'e06f_game' }],
         reaction: '새벽 2시까지 3연패. "너 군대에서 게임 안 했냐?"',
       },
       {
@@ -510,7 +519,7 @@ export const EVENTS: EventDef[] = [
         requires: { money: 6_000 },
         showLocked: true,
         lockedHint: '돈 부족',
-        effects: [{ money: -6_000 }, { rel: 'seorin', h: 3, t: 2, group: 'gift' }],
+        effects: [{ money: -6_000 }, { rel: 'seorin', h: 3, t: 2, group: 'gift' }, { setFlag: 'noona_snack' }],
         reaction: '"떡볶이? …매운 거 어떻게 알았어." 누나가 처음으로 의자를 끌어다 앉았다.',
       },
     ],
@@ -535,7 +544,7 @@ export const EVENTS: EventDef[] = [
         requires: { any: [{ stat: 'academics', min: 50 }, { flag: 'cvs_order' }] },
         showLocked: true,
         lockedHint: '학업 50 이상 또는 편의점 발주 경험',
-        effects: [{ addVar: 'booth', delta: 2 }, ...boothBonus, { setFlag: 'e08_done' }],
+        effects: [{ addVar: 'booth', delta: 2 }, ...boothBonus, { setFlag: 'e08_done' }, { setFlag: 'booth_did_role' }],
         reaction: '엑셀 하나에 근무표와 재고를 다 넣었다. 거래처 사장님이 "내일 아침 8시"라고 답했다.',
       },
       {
@@ -544,7 +553,7 @@ export const EVENTS: EventDef[] = [
         requires: { stat: 'personality', min: 50 },
         showLocked: true,
         lockedHint: '성격 50 이상',
-        effects: [{ addVar: 'booth', delta: 2 }, ...boothBonus, { setFlag: 'e08_done' }],
+        effects: [{ addVar: 'booth', delta: 2 }, ...boothBonus, { setFlag: 'e08_done' }, { setFlag: 'booth_did_role' }],
         reaction: '"제가 3시 타임 할게요." 한 명이 손을 들자 줄줄이 따라 들었다. 옆 과 부스는 양파를 주고 소주잔을 받아 갔다.',
       },
       {
@@ -559,6 +568,7 @@ export const EVENTS: EventDef[] = [
             else: [{ log: '하늘이가 투덜대면서 마트까지 같이 가 줬다.' }],
           },
           { setFlag: 'e08_done' },
+          { setFlag: 'booth_did_role' },
         ],
         reaction: '마트에서 재료를 양손 가득 들고 돌아왔다. 근무표는 반쯤 해결됐다.',
       },
@@ -585,6 +595,13 @@ export const EVENTS: EventDef[] = [
       { rel: 'seorin', h: 5, t: 5, narrative: true },
       { setFlag: 'recognized' },
       { setFlag: 'saw_recognition' },
+      {
+        notice: {
+          kind: 'diary',
+          title: '회귀자의 일기',
+          text: '그날 사람들은 처음으로 내 이름을 불렀다. 나는 그 목소리들을 듣느라, 오래전부터 내 이름을 불러 주던 사람을 못 봤다.',
+        },
+      },
     ],
     text: [
       '축제 첫날 밤 9시. 과 부스 앞에 줄이 골목까지 늘어섰다. 어제까지 엉망이던 근무표는 지금 내 손에 있다.',
@@ -644,7 +661,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'E10S',
     title: '인기가 생긴 뒤',
-    week: { from: 10, to: 11 },
+    week: { from: 10 },
     when: { all: [{ flag: 'note_exchange' }, { rel: 'seoyun', met: true }] },
     portrait: PORTRAITS.seoyun,
     text: [
@@ -655,7 +672,7 @@ export const EVENTS: EventDef[] = [
       {
         id: 'keep',
         text: '서윤이와의 약속을 지킨다',
-        effects: [{ rel: 'seoyun', t: 4, group: 'promise' }],
+        effects: [{ rel: 'seoyun', t: 4, group: 'promise' }, { setFlag: 'e10_good' }],
         reaction: '"진짜 왔네요." 서윤이가 노트에 뭔가를 적는다. 날짜와 함께. "약속 지킨 사람."',
       },
       {
@@ -670,7 +687,7 @@ export const EVENTS: EventDef[] = [
         requires: { stat: 'personality', min: 50 },
         showLocked: true,
         lockedHint: '성격 50 이상',
-        effects: [{ stat: 'popularity', delta: 3 }, { rel: 'seoyun', t: 2, group: 'talk' }],
+        effects: [{ stat: 'popularity', delta: 3 }, { rel: 'seoyun', t: 2, group: 'talk' }, { setFlag: 'e10_good' }],
         reaction: '서윤이는 구석에서 콜라만 마셨지만, 돌아오는 길에 "생각보다 재밌었어요"라고 했다.',
       },
       {
@@ -684,7 +701,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'E10H',
     title: '인기가 생긴 뒤',
-    week: { from: 10, to: 11 },
+    week: { from: 10 },
     when: { notFlag: 'note_exchange' },
     portrait: PORTRAITS.haneul,
     text: [
@@ -695,7 +712,7 @@ export const EVENTS: EventDef[] = [
       {
         id: 'keep',
         text: '하늘이와의 약속을 지킨다',
-        effects: [{ rel: 'haneul', t: 4, group: 'promise' }],
+        effects: [{ rel: 'haneul', t: 4, group: 'promise' }, { setFlag: 'e10_good' }],
         reaction: '"뭐야, 인싸 됐다며. 나랑 국밥 먹어도 돼?" 하늘이가 웃으며 깍두기를 덜어 준다.',
       },
       {
@@ -710,7 +727,7 @@ export const EVENTS: EventDef[] = [
         requires: { stat: 'personality', min: 50 },
         showLocked: true,
         lockedHint: '성격 50 이상',
-        effects: [{ stat: 'popularity', delta: 3 }, { rel: 'haneul', t: 2, group: 'talk' }],
+        effects: [{ stat: 'popularity', delta: 3 }, { rel: 'haneul', t: 2, group: 'talk' }, { setFlag: 'e10_good' }],
         reaction: '하늘이가 오자 술자리 분위기가 확 바뀌었다. 하늘이는 내 옆자리를 끝까지 지켰다.',
       },
       {
@@ -719,6 +736,62 @@ export const EVENTS: EventDef[] = [
         effects: [{ stat: 'popularity', delta: 5 }, { rel: 'haneul', t: -8 }, { setFlag: 'ignored_friend' }, { setFlag: 'friend_conflict_open' }],
         reaction: '"정하늘이랑 소꿉친구라고? 대박." 다들 웃었다. 그 얘기는 이틀 만에 하늘이 귀에 들어갔다.',
       },
+    ],
+  },
+
+  /* ───── E11A 말하지 못했던 한마디 (11주) ───── */
+  {
+    id: 'E11A',
+    title: '말하지 못했던 한마디',
+    week: { from: 11 },
+    portrait: PORTRAITS.haneul,
+    text: [
+      '시험 기간 도서관. 휴대폰 메모장에 쓰다 지운 문장이 몇 줄 남아 있다.',
+      '그동안 고맙다는 말도, 미안하다는 말도 제대로 해 본 적이 없다.',
+    ],
+    choices: [
+      {
+        id: 'sorry',
+        text: '하늘이에게 서운하게 했던 일을 구체적으로 사과한다',
+        requires: { any: [{ flag: 'friend_conflict_open' }, { flag: 'promise_broken' }, { flag: 'snapped_friend' }] },
+        effects: [{ rel: 'haneul', t: 3, group: 'talk' }, { setFlag: 'e11a_done' }],
+        reaction: '"…알았어. 근데 그거 직접 말하러 와라. 톡 말고." 답장이 3분 만에 왔다.',
+      },
+      {
+        id: 'thanks_haneul',
+        text: '하늘이에게 지난 학기 고마웠던 일을 하나 짚어 감사를 전한다',
+        effects: [{ rel: 'haneul', h: 2, t: 2, group: 'remember' }, { setFlag: 'e11a_done' }],
+        reaction: '"갑자기 왜 이래, 무섭게." 그래도 하늘이는 하트 이모티콘을 세 개나 보냈다.',
+      },
+      {
+        id: 'thanks_seorin',
+        text: '서린 누나에게 축제 때 믿고 맡겨 준 일을 고맙다고 말한다',
+        requires: { rel: 'seorin', met: true },
+        effects: [{ rel: 'seorin', t: 2, group: 'remember' }, { setFlag: 'e11a_done' }],
+        reaction: '"뭘 새삼." 누나의 답장은 짧았다. 1분 뒤 하나가 더 왔다. "다음에도 같이 하자고 했잖아."',
+      },
+      {
+        id: 'skip',
+        text: '메모장을 닫는다',
+        effects: [],
+        reaction: '다음에 하지 뭐. 일기 속의 나도 그렇게 말했을 것이다.',
+      },
+    ],
+  },
+
+  /* ───── 도전 미션 c02: 단톡방 감사 ───── */
+  {
+    id: 'ECHAT',
+    title: '단톡방에 남은 한 줄',
+    week: { from: 10, to: 13 },
+    when: { all: [{ flag: 'mission_c02_active' }, { varName: 'helpedOthers', min: 2 }] },
+    order: 8,
+    text: [
+      '저녁, 연합 동아리 단톡방에 알림이 뜬다.',
+      '"오늘 과제 자료 정리해 준 2학년 선배님 진짜 감사합니다ㅠㅠ 덕분에 살았어요"',
+    ],
+    choices: [
+      { id: 'ok', text: '"별말씀을요" 짧게 답한다', effects: [{ setFlag: 'chat_thanks' }, { stat: 'popularity', delta: 2 }], reaction: '그 아래로 "누구?", "그 복학생 형?" 하는 메시지가 줄줄이 달렸다.' },
     ],
   },
 
@@ -741,6 +814,7 @@ export const EVENTS: EventDef[] = [
             then: [{ rel: 'haneul', h: 5, narrative: true }, { setFlag: 'friend_reward5' }],
           },
           { clearFlag: 'friend_conflict_open' },
+          { setFlag: 'e11c_sorry' },
         ],
         reaction: '하늘이가 캔을 내민다. "…따 줘. 손 시려." 그게 화해의 신호라는 걸 안다.',
       },
@@ -831,4 +905,7 @@ export const EVENTS: EventDef[] = [
       { id: 'self', text: '방학엔 자기관리에 집중한다', effects: [{ setFlag: 'summer_self' }], reaction: '2학기엔 더 달라진 모습으로.' },
     ],
   },
+
+  /* ───── 연애 미션 장면 (data/romance.ts) ───── */
+  ...ROMANCE_EVENTS,
 ]

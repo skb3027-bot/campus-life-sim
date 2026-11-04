@@ -60,6 +60,8 @@ export type Effect =
   | { log: string }
   /** 미용실(유지형) · 옷(착용형, 반복 감소) · 회복 주간 */
   | { special: 'hair' | 'clothes' | 'recovery' }
+  /** 결과 카드로 띄울 알림 (회귀자의 일기 등) */
+  | { notice: { title: string; text: string; kind?: NoticeKind } }
   | { if: Condition; then: Effect[]; else?: Effect[] }
 
 export interface Choice {
@@ -88,6 +90,8 @@ export interface EventDef {
   choices: Choice[]
   /** 같은 주 안에서의 처리 순서 */
   order?: number
+  /** 조건 플래그로만 제어되는 반복 사건 (firedEvents에 기록하지 않음) */
+  repeatable?: boolean
 }
 
 export interface ActivityDef {
@@ -146,10 +150,61 @@ export interface GameState {
   lastEnterChanges?: string[]
   /** 지난 주 마감 정산 */
   lastWeekChanges?: string[]
+  /** 키 (cm) — 시스템 포인트로만 성장 */
+  height: number
+  /** 배분하지 않은 시스템 포인트 */
+  points: number
+  missions: Record<string, MissionState>
+  /** 히로인별 마지막으로 반응을 보인 외형 묶음 (1: 1–4단계, 2: 5–7, 3: 8–10) */
+  seenBand: Partial<Record<CharId, number>>
+  /** 현재 사건에서 히로인이 외형 변화에 보인 반응 한마디 */
+  reactionLine?: string
+  /** UI가 꺼내 가는 알림 (미션·일기·상승 알림) */
+  notices: ResultSummary[]
+  /** 주차별 P 기록 (성장 속도 검증) */
+  pointLog: { week: number; earned: number; spent: number; stage: number }[]
 }
+
+export type NoticeKind = 'result' | 'mission' | 'diary' | 'levelup' | 'reaction'
 
 export interface ResultSummary {
   title: string
   reaction: string
   changes: string[]
+  kind?: NoticeKind
 }
+
+/* ───────── 미션 ───────── */
+
+export type MissionKind = 'main' | 'challenge' | 'romance'
+
+export interface MissionDef {
+  id: string
+  kind: MissionKind
+  title: string
+  desc: string
+  reward: number
+  /** 제시 조건 */
+  offerWeek: number
+  offerWhen?: Condition
+  /** 절대 마감 주 (main) */
+  deadlineWeek?: number
+  /** 수락 후 N주 (challenge·romance) */
+  deadlineAfter?: number
+  /** 수락이 필요한 미션 (거절 가능) */
+  needsAccept: boolean
+  success: Condition
+  heroine?: CharId
+  stage?: number
+  /** 실패 시 나중에 다시 제시 (romance) */
+  reofferable?: boolean
+}
+
+export type MissionStatus = 'offered' | 'active' | 'done' | 'failed' | 'declined'
+
+export interface MissionState {
+  status: MissionStatus
+  deadline: number
+}
+
+export type PointTarget = 'looks' | 'personality' | 'academics' | 'wealth' | 'height'

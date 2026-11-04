@@ -30,6 +30,14 @@ export const CHARACTERS: Record<CharId, CharacterDef> = {
 
 export const CHAR_IDS: CharId[] = ['haneul', 'seorin', 'seoyun']
 
+/** 주인공 외형 단계 이미지 — 있는 단계만 등록, 없으면 가장 가까운 아래(없으면 위) 단계 사용 */
+const HERO_STAGES = [2, 3, 4, 5, 6, 7, 8]
+export const heroImage = (stage: number) => {
+  const lower = HERO_STAGES.filter((n) => n <= stage)
+  const n = lower.length ? lower[lower.length - 1] : HERO_STAGES[0]
+  return `characters/hero/stage${n}.png`
+}
+
 export const PORTRAITS = {
   haneul: 'characters/c01_haneul.png',
   haneulSmile: 'characters/c01_haneul_smile.png',
