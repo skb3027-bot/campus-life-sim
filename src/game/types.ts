@@ -35,6 +35,8 @@ export type Condition =
   | { money: number }
   /** 이 선택 후 남는 체력이 이 값 이상이어야 함 (과로 판정) */
   | { energyAfter: { cost: number; min: number } }
+  /** 이번 주에 이 활동을 했는지 */
+  | { didActivity: string }
   | { any: Condition[] }
   | { all: Condition[] }
 
@@ -106,6 +108,10 @@ export interface EventDef {
   order?: number
   /** 조건 플래그로만 제어되는 반복 사건 (firedEvents에 기록하지 않음) */
   repeatable?: boolean
+  /** 활동 사건: 그 주에 고른 활동에서 생기는 상황 (주당 최대 2개) */
+  pool?: 'activity'
+  /** 발생 확률 0~1 (저장마다 고정된 시드로 판정 → 불러와도 결과 같음) */
+  chance?: number
 }
 
 export interface ActivityDef {
@@ -175,6 +181,8 @@ export interface GameState {
   reactionLine?: string
   /** UI가 꺼내 가는 알림 (미션·일기·상승 알림) */
   notices: ResultSummary[]
+  /** 활동 사건 확률 판정용 시드 */
+  seed?: number
   /** 주차별 P 기록 (성장 속도 검증) */
   pointLog: { week: number; earned: number; spent: number; stage: number }[]
 }

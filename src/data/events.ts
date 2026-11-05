@@ -5,6 +5,7 @@
 import type { Condition, Effect, EventDef } from '../game/types'
 import { PORTRAITS } from './characters'
 import { ROMANCE_EVENTS } from './romance'
+import { ACTIVITY_EVENTS } from './activityEvents'
 
 const CONFIDENT: Condition = { mental: { min: 50 } }
 const CONFIDENT_HINT = '멘탈 50 이상 필요'
@@ -734,6 +735,8 @@ export const EVENTS: EventDef[] = [
       { if: { flag: 'presented_plan' }, text: '"동선은 네가 짠 거니까 네가 끝까지 책임져. 난 재료 쪽 뛴다."' },
       { if: { flag: 'presenter_other' }, text: '"토요일에 네 안 대신 발표한 애는 오늘 연락이 안 돼. 결국 너야."' },
       { if: { flag: 'stayed_late' }, text: '어젯밤 새벽까지 같이 박스를 쌓던 누나가, 오늘은 내 쪽을 먼저 본다.' },
+      { if: { flag: 'classmate_trust' }, text: '휴대폰이 울린다. 휴학 고민을 들어 줬던 동기다. "형, 축제 때 필요하면 부르라고 했죠? 지금 갈게요."' },
+      { if: { flag: 'carried_team' }, text: '조별과제를 혼자 끝냈던 밤이 떠오른다. 그때처럼 혼자 다 할 수도 있다. 이번에도 그게 맞을까.' },
     ],
     choices: [
       {
@@ -748,9 +751,10 @@ export const EVENTS: EventDef[] = [
       {
         id: 'coord',
         text: '사람들을 모아 근무를 다시 짜고, 옆 과 부스와 재료를 맞교환한다',
-        requires: { stat: 'personality', min: 50 },
+        // 과 동기들과 어울려 둔 경우(활동 사건)에도 열림
+        requires: { any: [{ stat: 'personality', min: 50 }, { flag: 'has_classmates' }] },
         showLocked: true,
-        lockedHint: '성격 50 이상',
+        lockedHint: '성격 50 이상 또는 과 동기들과 친해지기',
         effects: [{ addVar: 'booth', delta: 2 }, ...boothBonus, { setFlag: 'e08_done' }, { setFlag: 'booth_did_role' }],
         reaction: '"제가 3시 타임 할게요." 한 명이 손을 들자 줄줄이 따라 들었다. 옆 과 부스는 양파를 주고 소주잔을 받아 갔다.',
       },
@@ -804,6 +808,8 @@ export const EVENTS: EventDef[] = [
     textIf: [
       { if: { flag: 'presented_plan' }, text: '누나가 한마디를 덧붙인다. "동선도 얘가 짰어. 회의 때 직접 설명한 거 기억하지?"' },
       { if: { flag: 'interview_published' }, text: '"아, 학보에 나온 그 형이구나." 누군가 휴대폰으로 기사를 찾아 보여 준다.' },
+      { if: { flag: 'has_classmates' }, text: '단톡방에서 매일 떠들던 동기들이 부스 앞으로 몰려와 소리친다. "우리 형이다!"' },
+      { if: { flag: 'gym_buddy' }, text: '체육관에서 랙을 나눠 쓰던 3학년 선배가 엄지를 들어 보인다.' },
     ],
     choices: [
       {
@@ -1067,6 +1073,14 @@ export const EVENTS: EventDef[] = [
         if: { flag: 'told_go' },
         text: '"너 그때 가라고 했잖아. 맞는 말인데… 이상하게 그 말이 좀 서운했어. 왜 서운했는지 모르겠어."',
       },
+      {
+        if: { flag: 'showed_jealousy' },
+        text: '"아, 그 선배? 안 만났어. 너가 별로라며. …그 말이 왜 계속 생각났는지 모르겠네."',
+      },
+      {
+        if: { flag: 'said_meet_senior' },
+        text: '"그 선배랑 밥 한 번 먹었어. 네가 만나 보라며. …재미없더라. 너랑 먹는 국밥이 더 나았어."',
+      },
     ],
     choices: [
       {
@@ -1145,4 +1159,7 @@ export const EVENTS: EventDef[] = [
 
   /* ───── 연애 미션 장면 (data/romance.ts) ───── */
   ...ROMANCE_EVENTS,
+
+  /* ───── 활동 사건 (data/activityEvents.ts) ───── */
+  ...ACTIVITY_EVENTS,
 ]

@@ -46,7 +46,7 @@ export const STAT_LABEL: Record<StatKey, string> = {
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`)
 
-export function newGame(): GameState {
+export function newGame(seed: number = Math.floor(Math.random() * 2 ** 31)): GameState {
   const rels = Object.fromEntries(
     CHAR_IDS.map((id) => {
       const init = CHARACTERS[id].initial
@@ -87,6 +87,7 @@ export function newGame(): GameState {
     seenBand: {},
     notices: [],
     pointLog: [],
+    seed,
   }
   for (let i = 1; i <= appearanceStage(s.stats.looks); i++) s.flags.push(`stage_${i}`)
   s.flags.push('prologue_seen')
@@ -132,6 +133,7 @@ export function check(s: GameState, c: Condition | undefined): boolean {
     const v = getVar(s, c.varName)
     return (c.min === undefined || v >= c.min) && (c.max === undefined || v <= c.max)
   }
+  if ('didActivity' in c) return hasFlag(s, `act_${c.didActivity}_w${s.week}`)
   if ('money' in c) return s.money >= c.money
   if ('energyAfter' in c) return s.energy - c.energyAfter.cost >= c.energyAfter.min
   if ('any' in c) return c.any.some((x) => check(s, x))
@@ -537,12 +539,26 @@ export const eventById = (id: string) => {
   return e
 }
 
+export const ACTIVITY_EVENTS_PER_WEEK = 2
+
+/** 저장 시드 + 주차 + 사건 ID로 정해지는 0~1 값 (같은 저장에서는 항상 같은 결과) */
+function roll(s: GameState, id: string) {
+  let h = (s.seed ?? 0) ^ (s.week * 2654435761)
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 2246822519)
+  h ^= h >>> 13
+  return ((h >>> 0) % 10000) / 10000
+}
+
+const activityEventsThisWeek = (s: GameState) => getVar(s, `actEv_w${s.week}`)
+
 export function eligibleEvents(s: GameState): EventDef[] {
   return EVENTS.filter(
     (e) =>
       (e.repeatable || !s.firedEvents.includes(e.id)) &&
       s.week >= e.week.from &&
       s.week <= (e.week.to ?? e.week.from) &&
+      (!e.pool || activityEventsThisWeek(s) < ACTIVITY_EVENTS_PER_WEEK) &&
+      (e.chance === undefined || roll(s, e.id) < e.chance) &&
       check(s, e.when),
   ).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 }
@@ -605,6 +621,7 @@ export function choose(prev: GameState, choiceId: string): GameState {
   const reaction = choice.reactionIf?.find((r) => check(prev, r.if))?.text ?? choice.reaction
   applyEffects(s, choice.effects, out)
   if (!ev.repeatable) s.firedEvents.push(ev.id)
+  if (ev.pool) s.vars[`actEv_w${s.week}`] = getVar(s, `actEv_w${s.week}`) + 1
   s.log.push({ week: s.week, text: `${ev.title} — ${choice.text}` })
   s.lastResult = { title: ev.title, reaction, changes: out }
   // 결과 카드를 일기·미션 알림보다 먼저 보여 준다

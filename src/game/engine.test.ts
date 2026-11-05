@@ -3,8 +3,10 @@ import { calcRelChange, firstImpressionH, applyWeeklyCap, roundHalfUp } from './
 import {
   acceptMission,
   allocatePoints,
+  check,
   checkPlan,
   choose,
+  eventById,
   currentEvent,
   currentStage,
   diaryPages,
@@ -12,6 +14,8 @@ import {
   runWeek,
 } from './engine'
 import type { GameState } from './types'
+
+const SEED = 12345
 
 /** 그 주 사건을 정해진 선택(없으면 첫 선택 가능 항목)으로 모두 처리 */
 function resolveWeek(s: GameState, picks: Record<string, string> = {}): GameState {
@@ -26,7 +30,7 @@ function resolveWeek(s: GameState, picks: Record<string, string> = {}): GameStat
 }
 
 function play(plan: Record<number, string[]>, picks: Record<string, string>, untilWeek = 13) {
-  let s = newGame()
+  let s = newGame(SEED)
   while (s.phase !== 'season_end' && s.week <= untilWeek) {
     s = resolveWeek(runWeek(s, plan[s.week] ?? []).state, picks)
   }
@@ -62,7 +66,7 @@ describe('rules (GPT 검산 예시)', () => {
 
 describe('포인트·미션', () => {
   it('포인트 배분: 외모 +1/P, 재력 3만 원/P, 키 1cm/P (최대 188)', () => {
-    let s = newGame()
+    let s = newGame(SEED)
     s = { ...s, points: 30 }
     s = allocatePoints(s, { looks: 5, wealth: 2, height: 20 })
     expect(s.stats.looks).toBe(10)
@@ -73,21 +77,21 @@ describe('포인트·미션', () => {
     expect(s.flags).toContain('ms_height_2')
   })
   it('시작 시점에 이미 넘은 성장 기준은 알림을 띄우지 않음', () => {
-    const s = runWeek(newGame(), ['meal']).state
+    const s = runWeek(newGame(SEED), ['meal']).state
     expect(s.notices.some((n) => n.title.includes('성격 1차') || n.title.includes('두뇌 1차'))).toBe(false)
   })
   it('가진 P보다 많이 배분할 수 없음', () => {
-    const s = { ...newGame(), points: 2 }
+    const s = { ...newGame(SEED), points: 2 }
     expect(allocatePoints(s, { looks: 3 })).toBe(s)
   })
   it('1주차 미션: 하늘이에게 근황을 말하면 2P', () => {
-    let s = runWeek(newGame(), []).state
+    let s = runWeek(newGame(SEED), []).state
     s = choose(s, 'lonely')
     expect(s.missions.m01.status).toBe('done')
     expect(s.points).toBe(2)
   })
   it('연애 미션 ①: 하늘이는 시작부터 제시되고, 수락 → 활동 → 좋은 선택이면 완료', () => {
-    let s = newGame()
+    let s = newGame(SEED)
     expect(s.missions.rom_haneul_1.status).toBe('offered')
     s = acceptMission(s, 'rom_haneul_1')
     expect(s.missions.rom_haneul_1.status).toBe('active')
@@ -97,7 +101,7 @@ describe('포인트·미션', () => {
     expect(s.missions.rom_haneul_1.status).toBe('done')
   })
   it('연애 미션: 재촉하면 그 단계는 막히고 감점', () => {
-    let s = acceptMission(newGame(), 'rom_haneul_1')
+    let s = acceptMission(newGame(SEED), 'rom_haneul_1')
     s = choose(runWeek(s, ['act_rom_haneul_1']).state, 'lonely')
     const h0 = s.rels.haneul.h
     s = choose(s, 'pushy')
@@ -110,7 +114,7 @@ describe('이야기 분기·일기', () => {
   const diaryResult = (s: GameState, id: string) => diaryPages(s).find((p) => p.id === id)?.result
 
   it('프롤로그 시점에 "7주 토요일" 일기가 원래 미래로 공개되고 아직 결과는 없음', () => {
-    const s = newGame()
+    const s = newGame(SEED)
     const page = diaryPages(s).find((p) => p.id === 'd_saturday')
     expect(page).toBeDefined()
     expect(page?.result).toBeUndefined()
@@ -181,15 +185,59 @@ describe('이야기 분기·일기', () => {
   })
 })
 
+describe('활동에 따라 달라지는 상황', () => {
+  /** 시드를 지정해 13주를 같은 활동 계획으로 진행 */
+  function playWith(seed: number, weekly: string[], picks: Record<string, string> = {}) {
+    let s = newGame(seed)
+    while (s.phase !== 'season_end') {
+      const ids = weekly.filter((id) => checkPlan(s, [id]).ok)
+      const plan = checkPlan(s, ids).ok ? ids : []
+      s = resolveWeek(runWeek(s, plan).state, picks)
+    }
+    return s
+  }
+  const fired = (s: GameState, prefix: string) => s.firedEvents.filter((id) => id.startsWith(prefix))
+
+  it('공부만 한 학기와 과 사람들과 어울린 학기는 겪는 상황이 다름', () => {
+    const study = playWith(SEED, ['study', 'meal'])
+    const social = playWith(SEED, ['social', 'meal'])
+    expect(fired(study, 'AS_').length).toBeGreaterThan(0)
+    expect(fired(study, 'AO_')).toEqual([])
+    expect(fired(social, 'AO_').length).toBeGreaterThan(0)
+    expect(fired(social, 'AS_')).toEqual([])
+  })
+
+  it('활동 사건은 한 주에 최대 2개', () => {
+    const s = playWith(SEED, ['study', 'social', 'meal', 'rest'])
+    for (const [k, v] of Object.entries(s.vars)) if (k.startsWith('actEv_w')) expect(v).toBeLessThanOrEqual(2)
+  })
+
+  it('같은 저장(시드)이면 결과가 같고, 시드가 다르면 달라질 수 있음', () => {
+    const a = playWith(SEED, ['study', 'social', 'meal'])
+    const b = playWith(SEED, ['study', 'social', 'meal'])
+    expect(a.firedEvents).toEqual(b.firedEvents)
+    const variants = new Set([1, 2, 3, 4, 5, 6, 7, 8].map((seed) => fired(playWith(seed, ['study', 'social', 'meal']), 'A').join(',')))
+    expect(variants.size).toBeGreaterThan(1)
+  })
+
+  it('과 동기 단톡에 참여하면 성격이 낮아도 축제 조율 경로가 열림', () => {
+    const coord = eventById('E08').choices.find((c) => c.id === 'coord')!
+    const s = newGame(SEED)
+    expect(s.stats.personality).toBeLessThan(50)
+    expect(check(s, coord.requires)).toBe(false)
+    expect(check({ ...s, flags: [...s.flags, 'has_classmates'] }, coord.requires)).toBe(true)
+  })
+})
+
 describe('체력·과로', () => {
   it('정상 소진 0은 허용, -3까지 무리 가능, -4는 불가', () => {
-    const s = newGame()
+    const s = newGame(SEED)
     expect(checkPlan(s, ['cvs', 'study', 'social', 'meal']).energyAfter).toBe(0)
     expect(checkPlan(s, ['cvs', 'cvs', 'study', 'meal', 'hair']).ok).toBe(true) // -3
     expect(checkPlan(s, ['cvs', 'cvs', 'study', 'social', 'meal']).ok).toBe(false) // -4
   })
   it('과로하면 다음 주 회복 주간', () => {
-    let s = newGame()
+    let s = newGame(SEED)
     s = resolveWeek(runWeek(s, ['cvs', 'cvs', 'study', 'meal', 'hair']).state, { E01: 'fine' })
     expect(s.week).toBe(2)
     expect(s.forcedRest).toBe(true)
@@ -197,7 +245,7 @@ describe('체력·과로', () => {
     expect(checkPlan(s, ['rest']).ok).toBe(true)
   })
   it('PC방 약속 체력은 7주에 예약되고 실행 시 한 번만 차감', () => {
-    let s = newGame()
+    let s = newGame(SEED)
     s = runWeek(s, []).state
     s = choose(s, 'promise')
     expect(s.reservations).toEqual([{ key: 'pc', week: 7, amount: 2 }])
