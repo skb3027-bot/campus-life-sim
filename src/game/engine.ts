@@ -30,6 +30,7 @@ import { ACTIVITIES, activityById } from '../data/activities'
 import { EVENTS } from '../data/events'
 import { MISSIONS, missionById } from '../data/missions'
 import { REACTIONS } from '../data/reactions'
+import { DIARY } from '../data/diary'
 
 export const SAVE_VERSION = 3
 
@@ -88,6 +89,7 @@ export function newGame(): GameState {
     pointLog: [],
   }
   for (let i = 1; i <= appearanceStage(s.stats.looks); i++) s.flags.push(`stage_${i}`)
+  s.flags.push('prologue_seen')
   // 시작 시점에 이미 넘은 기준은 알림 없이 달성 처리
   checkMilestones(s)
   refreshMissions(s)
@@ -395,6 +397,7 @@ function checkMilestones(s: GameState) {
       }
     })
   }
+  checkDiary(s)
   const stage = appearanceStage(s.stats.looks)
   for (let i = 2; i <= stage; i++) {
     if (!hasFlag(s, `stage_${i}`)) {
@@ -405,6 +408,50 @@ function checkMilestones(s: GameState) {
 }
 
 export const currentStage = (s: GameState) => appearanceStage(s.stats.looks)
+
+/* ───────── 회귀자의 일기 ───────── */
+
+/** 일기 페이지 공개 + 결과 확정 (한 페이지당 공개 1회, 확정 1회) */
+function checkDiary(s: GameState) {
+  for (const d of DIARY) {
+    const shown = `diary_${d.id}_shown`
+    if (!hasFlag(s, shown)) {
+      if (!check(s, d.showWhen)) continue
+      setFlag(s, shown)
+      notify(s, { kind: 'diary', title: `회귀자의 일기 · ${d.title}`, reaction: d.original, changes: ['원래 미래의 기록'] })
+    }
+    if (d.outcomes.some((_, i) => hasFlag(s, `diary_${d.id}_o${i}`))) continue
+    const i = d.outcomes.findIndex((o) => check(s, o.when))
+    if (i < 0) continue
+    setFlag(s, `diary_${d.id}_o${i}`)
+    const o = d.outcomes[i]
+    notify(s, {
+      kind: 'diary',
+      title: o.kind === 'changed' ? `일기의 문장이 바뀌었다 · ${d.title}` : `회귀자의 일기 · ${d.title}`,
+      reaction: o.text,
+      changes: [o.kind === 'changed' ? '기록이 수정됨' : '기록과 일치'],
+    })
+  }
+}
+
+export interface DiaryView {
+  id: string
+  title: string
+  original: string
+  result?: { kind: 'changed' | 'kept'; text: string }
+}
+
+export const diaryPages = (s: GameState): DiaryView[] =>
+  DIARY.filter((d) => hasFlag(s, `diary_${d.id}_shown`)).map((d) => {
+    const i = d.outcomes.findIndex((_, k) => hasFlag(s, `diary_${d.id}_o${k}`))
+    return { id: d.id, title: d.title, original: d.original, result: i >= 0 ? d.outcomes[i] : undefined }
+  })
+
+/** 사건 본문 + 앞선 선택을 기억하는 문장 */
+export const eventText = (s: GameState, ev: EventDef) => [
+  ...ev.text,
+  ...(ev.textIf ?? []).filter((t) => check(s, t.if)).map((t) => t.text),
+]
 
 /* ───────── 주간 계획 ───────── */
 
@@ -554,14 +601,14 @@ export function choose(prev: GameState, choiceId: string): GameState {
   const s = clone(prev)
   s.notices = []
   const out = [...(s.lastEnterChanges ?? [])]
-  // 결과 카드를 일기·미션 알림보다 먼저 보여 준다
-  const pending = s.notices
-  s.notices = []
+  // 반응 문장은 선택 직전 상태로 판정
+  const reaction = choice.reactionIf?.find((r) => check(prev, r.if))?.text ?? choice.reaction
   applyEffects(s, choice.effects, out)
   if (!ev.repeatable) s.firedEvents.push(ev.id)
   s.log.push({ week: s.week, text: `${ev.title} — ${choice.text}` })
-  s.lastResult = { title: ev.title, reaction: choice.reaction, changes: out }
-  s.notices = [{ ...s.lastResult, kind: 'result' }, ...pending, ...s.notices]
+  s.lastResult = { title: ev.title, reaction, changes: out }
+  // 결과 카드를 일기·미션 알림보다 먼저 보여 준다
+  s.notices = [{ ...s.lastResult, kind: 'result' }, ...s.notices]
   s.lastEnterChanges = []
   checkMilestones(s)
   refreshMissions(s)
@@ -601,12 +648,13 @@ export function endWeek(s: GameState): GameState {
   s.lastWeekChanges = out
   notify(s, { kind: 'result', title: `${ended}주차 정산`, reaction: '용돈과 알바비가 들어왔다.', changes: out })
 
+  // 7주 시작: 일기의 "7주 토요일" 페이지를 다시 상기 (아직 일어나지 않은 일 — 원래 미래로만 서술)
   if (s.week === 7 && hasFlag(s, 'promise_pc')) {
     notify(s, {
       kind: 'diary',
-      title: '회귀자의 일기',
-      reaction: '약속은 바꿀 수 있었다. 전화 한 통이면 됐다. 나는 그 한 통을 하지 않았고, 그 애는 두 번 다시 먼저 시간을 묻지 않았다.',
-      changes: [],
+      title: '회귀자의 일기 · 이번 주 토요일',
+      reaction: '일기장 한 페이지의 모서리가 접혀 있다. "7주 토요일. 하늘이가 할 얘기가 있다고 했다. 나는 가지 않았다." 이번 주다.',
+      changes: ['약속 체력 2 예약됨'],
     })
   }
   checkMilestones(s)
@@ -636,7 +684,10 @@ export function load(): GameState | null {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return null
     const s = JSON.parse(raw) as GameState
-    return s.version === SAVE_VERSION ? s : null
+    if (s.version !== SAVE_VERSION) return null
+    // 일기 기능 이전 저장: 첫 페이지 공개 조건만 보충 (다음 행동 때 일기에 반영)
+    if (!s.flags.includes('prologue_seen')) s.flags.push('prologue_seen')
+    return s
   } catch {
     return null
   }

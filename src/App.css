@@ -669,6 +669,43 @@
   }
 }
 
+/* ── 일기 카드 ── */
+.diary {
+  background: #241f18;
+  border-color: #5a4a32;
+}
+.diary h3 {
+  color: #d8c29a;
+  font-family: 'Noto Serif KR', serif;
+}
+.diary-page {
+  border-top: 1px dashed #5a4a32;
+  padding: 10px 0;
+  font-size: 13px;
+}
+.diary-page:first-of-type {
+  border-top: none;
+}
+.diary-page b {
+  color: #d8c29a;
+}
+.diary-page p {
+  margin: 4px 0;
+  color: #e6dac2;
+  font-family: 'Noto Serif KR', serif;
+  line-height: 1.7;
+}
+.diary-page p.struck {
+  text-decoration: line-through;
+  color: #8a7a60;
+}
+.diary-result.changed {
+  color: #f3e3b8;
+}
+.diary-result.kept {
+  color: #e09a7a;
+}
+
 /* ── 반응형 ── */
 @media (max-width: 1100px) {
   .layout {

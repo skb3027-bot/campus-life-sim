@@ -74,6 +74,18 @@ export interface Choice {
   lockedHint?: string
   effects: Effect[]
   reaction: string
+  /** 선택 당시 상태에 따라 반응 문장을 바꿈 (첫 번째로 맞는 것 사용) */
+  reactionIf?: { if: Condition; text: string }[]
+}
+
+/** 회귀자의 일기 한 페이지: 원래(실패한) 미래 기록 → 플레이 결과로 수정 */
+export interface DiaryEntry {
+  id: string
+  title: string
+  showWhen: Condition
+  original: string
+  /** 첫 번째로 맞는 결과로 확정 (changed: 문장이 바뀜 / kept: 기록대로 됨) */
+  outcomes: { when: Condition; kind: 'changed' | 'kept'; text: string }[]
 }
 
 export interface EventDef {
@@ -87,6 +99,8 @@ export interface EventDef {
   /** 선택지 전에 자동 적용되는 효과 */
   onEnter?: Effect[]
   text: string[]
+  /** 앞선 선택을 기억하는 추가 문장 (조건이 맞으면 본문 뒤에 붙음) */
+  textIf?: { if: Condition; text: string }[]
   choices: Choice[]
   /** 같은 주 안에서의 처리 순서 */
   order?: number

@@ -63,6 +63,7 @@ export const EVENTS: EventDef[] = [
       '학식에서 혼자 밥을 먹는데, 맞은편에 식판이 탁 놓인다.',
       '"야, 너 살아 있었냐? 전역했으면 연락을 해야지."',
       '정하늘. 어릴 때부터 옆집에 살던 애. 여전히 대충 묶은 머리에 후드티 차림이다.',
+      '하늘이 가방 사이로 서류 봉투 하나가 삐죽 나와 있다. 내 시선을 느꼈는지 하늘이가 봉투를 쑥 밀어 넣는다. "아, 이거? 나중에 얘기해 줄게. 아직 확실한 게 아니라서."',
     ],
     choices: [
       {
@@ -102,6 +103,7 @@ export const EVENTS: EventDef[] = [
     title: '여분의 펜',
     week: { from: 2 },
     portrait: PORTRAITS.seoyun,
+    onEnter: [{ setFlag: 'e02_seen' }],
     text: [
       '교양 수업. 옆자리 여학생이 필통을 뒤집어 보고, 가방을 들여다보고, 다시 필통을 본다. 손이 멈춘다.',
       '내 필통에는 펜이 세 자루 있다.',
@@ -167,19 +169,30 @@ export const EVENTS: EventDef[] = [
     when: { any: [{ flag: 'pen_silent' }, { flag: 'pen_asked' }, { flag: 'pen_brave' }] },
     portrait: PORTRAITS.seoyun,
     order: 1,
-    text: ['다음 교양 시간. 그녀가 펜과 함께 노란 포스트잇을 내민다.', '"지난번에 고마웠어요. 근데 이름이…?"'],
+    text: [
+      '다음 교양 시간. 그녀가 펜과 함께 노란 포스트잇을 내민다. "한서윤이에요. 지난번에 고마웠어요."',
+      '그런데 그녀가 바로 자리로 돌아가지 않는다. 수첩을 펼쳐 들고, 조금 망설이다가 먼저 묻는다.',
+      '"저 학보사 기자인데요. 이번 호 주제가 \'다시 돌아온 사람들\'이에요. 복학생 인터뷰… 한 번만 해 주실 수 있어요? 솔직한 얘기면 좋겠어요."',
+    ],
     choices: [
       {
-        id: 'name',
-        text: '이름을 말하고 "괜찮아요" 한마디',
-        effects: [{ rel: 'seoyun', h: 2, t: 1, group: 'talk' }, { setFlag: 'e03_talk' }],
-        reaction: '"한서윤이에요. 저도 2학년." 그녀가 고개를 끄덕인다.',
+        id: 'interview',
+        text: '"…저 같은 사람 얘기도 괜찮으면요." 인터뷰를 수락한다',
+        effects: [{ rel: 'seoyun', h: 2, t: 2, group: 'talk' }, { setFlag: 'e03_talk' }, { setFlag: 'seoyun_interview' }],
+        reaction: '서윤이 수첩에 날짜를 적는다. "다음 주 수요일, 학생회관 2층이요. 저 질문 많이 해요. 각오하세요." 처음 보는 단호한 얼굴이었다.',
       },
       {
         id: 'note',
-        text: '포스트잇에 답장을 써서 돌려준다',
+        text: '인터뷰는 사양하고, 포스트잇에 "대신 서윤 씨 얘기가 궁금해요"라고 써서 돌려준다',
         effects: [{ rel: 'seoyun', h: 3, t: 2, group: 'talk' }, { setFlag: 'note_exchange' }, { setFlag: 'e03_talk' }],
-        reaction: '포스트잇을 읽은 그녀가 입을 가리고 웃는다. 수업이 끝날 때 노트 사이에 한 장이 더 끼워져 있었다.',
+        reaction:
+          '포스트잇을 읽은 서윤이 입을 가리고 웃는다. 수업이 끝날 때 노트 사이에 한 장이 더 끼워져 있었다. "저는 사람들 이야기를 사진이랑 글로 남기는 게 꿈이에요. 남의 얘기만 묻다가 제 얘기 질문받은 건 처음이네요."',
+      },
+      {
+        id: 'name',
+        text: '이름만 말하고 "인터뷰는 좀…" 정중히 거절한다',
+        effects: [{ rel: 'seoyun', h: 2, t: 1, group: 'talk' }, { setFlag: 'e03_talk' }],
+        reaction: '"아, 네. 괜찮아요." 서윤이 수첩을 덮는다. "그래도 마음 바뀌면 말해 주세요. 저 꽤 끈질겨요."',
       },
       {
         id: 'nod',
@@ -230,6 +243,69 @@ export const EVENTS: EventDef[] = [
         text: '그냥 둔다',
         effects: [],
         reaction: '거울을 등지고 누웠다. 다음에 하지 뭐.',
+      },
+    ],
+  },
+
+  /* ───── E04S: 서윤의 인터뷰 (서윤이 먼저 질문) ───── */
+  {
+    id: 'E04S',
+    title: '수요일, 학생회관 2층',
+    week: { from: 4 },
+    when: { flag: 'seoyun_interview' },
+    order: 3,
+    portrait: PORTRAITS.seoyun,
+    speaker: 'seoyun',
+    text: [
+      '서윤이 녹음 앱을 켜고 수첩을 펼친다. 질문지에는 형광펜이 잔뜩 칠해져 있다.',
+      '"첫 질문이요. 군대 가기 전엔 어떤 사람이었어요?"',
+      '"기사로 나가는 거니까 멋있게 말해도 돼요. …근데 저는 진짜 얘기가 더 궁금하긴 해요."',
+    ],
+    choices: [
+      {
+        id: 'honest',
+        text: '"솔직히… 아무도 저를 몰랐어요. 그게 편하다고 생각했고요."',
+        effects: [{ rel: 'seoyun', h: 2, t: 3, group: 'talk' }, { setFlag: 'interview_honest' }],
+        reaction:
+          '서윤이 녹음 버튼을 끈다. "이건 기사에 안 쓸게요." 잠깐 말이 없다가. "저도 고등학교 때 그랬어요. 그래서 남의 얘기를 묻는 일을 골랐어요. 질문하면, 적어도 혼자는 아니니까."',
+      },
+      {
+        id: 'polished',
+        text: '"새로 시작하려고 돌아왔습니다." 기사에 맞게 깔끔하게 답한다',
+        effects: [{ stat: 'popularity', delta: 3 }, { rel: 'seoyun', t: 1, group: 'talk' }, { setFlag: 'interview_published' }],
+        reaction:
+          '"좋네요. 제목으로 쓸게요." 다음 주 학보 3면에 내 사진이 실렸다. 과 단톡방에 누군가 링크를 올렸다. "이 형 우리 과임?" 서윤은 기사 끝에 작게 적었다. — 인터뷰이는 끝까지 웃지 않았다.',
+      },
+    ],
+  },
+
+  /* ───── E05H: 하늘이 먼저 잡는 약속 (E01에서 약속을 안 했을 때) ───── */
+  {
+    id: 'E05H',
+    title: '7주 토요일 비워 둬',
+    week: { from: 5 },
+    when: { notFlag: 'promise_pc' },
+    order: 0,
+    portrait: PORTRAITS.haneul,
+    speaker: 'haneul',
+    text: [
+      '밤 11시, 하늘이에게서 톡이 온다.',
+      '"7주 토요일, 중간고사 끝나는 날. 비워 둬."',
+      '"할 얘기 있어. 카톡으로 하기엔 좀 길어."',
+      '일기장의 첫 페이지가 떠오른다. 7주 토요일.',
+    ],
+    choices: [
+      {
+        id: 'ok',
+        text: '"알았어. 무슨 얘긴데?"',
+        effects: [{ setFlag: 'promise_pc' }, { reserveEnergy: { week: 7, amount: 2, key: 'pc' } }],
+        reaction: '"얼굴 보고 할 거야. 늦으면 죽음." 읽음 표시가 뜨자마자 하늘이는 잠수를 탔다.',
+      },
+      {
+        id: 'maybe',
+        text: '"그날 과 일정이 생길 수도 있는데… 생기면 미리 말할게."',
+        effects: [{ setFlag: 'promise_pc' }, { setFlag: 'warned_maybe' }, { reserveEnergy: { week: 7, amount: 2, key: 'pc' } }],
+        reaction: '"그래. 대신 진짜 미리 말해. 그날 아니면 다른 날 잡으면 되니까." 장난 이모티콘 하나 없이 온 답장이었다.',
       },
     ],
   },
@@ -374,7 +450,8 @@ export const EVENTS: EventDef[] = [
         id: 'listen',
         text: '고민을 들어 준다',
         effects: [{ rel: 'haneul', h: 3, t: 3, group: 'talk' }, { setFlag: 'heard_friend' }],
-        reaction: '라면이 다 불도록 하늘이는 취업 얘기를 했다. "…이런 얘기 너한테만 한다."',
+        reaction:
+          '라면이 다 불도록 하늘이는 취업 얘기를 했다. 그러다 가방에서 일본어 단어장이 떨어졌다. 하늘이가 재빨리 주워 넣는다. "…이건 토요일에 말할게. 이런 얘기 너한테만 한다."',
       },
       {
         id: 'game',
@@ -408,14 +485,26 @@ export const EVENTS: EventDef[] = [
       {
         id: 'keep',
         text: '모른 척 비밀을 지킨다',
-        effects: [{ rel: 'seorin', t: 5, group: 'help' }, { setFlag: 'noona_secret_kept' }, { setFlag: 'noona_e06_done' }],
-        reaction: '며칠 뒤, 누나가 지나가며 말했다. "단톡 봤어. 너는 아무 말 안 하더라."',
+        effects: [
+          { rel: 'seorin', t: 5, group: 'help' },
+          { setFlag: 'noona_secret_kept' },
+          { setFlag: 'noona_e06_done' },
+          { setFlag: 'booth_plan_assigned' },
+        ],
+        reaction:
+          '며칠 뒤, 누나가 지나가며 말했다. "단톡 봤어. 너는 아무 말 안 하더라." 그리고 서류 한 장을 내민다. "부스 동선안. 네가 짜. 토요일 회의 때 네가 설명하고."',
       },
       {
         id: 'tell',
         text: '"저 아무한테도 말 안 했어요." 직접 말한다',
-        effects: [{ rel: 'seorin', h: 2, t: 4, group: 'talk' }, { setFlag: 'noona_secret_kept' }, { setFlag: 'noona_e06_done' }],
-        reaction: '누나가 한참 나를 본다. "…봤구나." 그리고 짧게. "고맙다."',
+        effects: [
+          { rel: 'seorin', h: 2, t: 4, group: 'talk' },
+          { setFlag: 'noona_secret_kept' },
+          { setFlag: 'noona_e06_done' },
+          { setFlag: 'booth_plan_assigned' },
+        ],
+        reaction:
+          '누나가 한참 나를 본다. "…봤구나." 그리고 짧게. "고맙다." 다음 날 누나가 메시지를 보냈다. "부스 동선안 네가 짜. 토요일 회의에서 네가 설명해. 말로 고마운 건 이걸로 갚아."',
       },
       {
         id: 'leak',
@@ -441,42 +530,77 @@ export const EVENTS: EventDef[] = [
     order: 2,
     portrait: PORTRAITS.haneul,
     text: [
-      '중간고사 마지막 날. 하늘이에게서 톡이 온다. "PC방 7시. 도망가면 죽음."',
-      '5분 뒤, 서린 누나의 공지. "부스 회의 7시. 빠지는 사람은 개인 연락."',
+      '중간고사 마지막 날 오후. 하늘이에게서 톡이 온다.',
+      '"토요일 7시 기억하지? 근데 이번엔 게임 말고… 너한테 할 얘기가 있어. 진지한 거."',
+      '10분 뒤, 서린 누나의 메시지.',
+      '"토요일 7시 부스 회의. 빠지는 사람은 개인 연락."',
+      '책상 위의 일기장이 저절로 펼쳐져 있다. 7주 토요일. "나는 과 회의를 핑계로 가지 않았고, 연락도 하지 않았다."',
+    ],
+    textIf: [
+      {
+        if: { flag: 'booth_plan_assigned' },
+        text: '누나의 메시지가 하나 더 온다. "그리고 네가 짠 동선안, 네가 직접 설명해. 이번엔 네 이름으로 올릴 거야."',
+      },
+      {
+        if: { flag: 'warned_maybe' },
+        text: '하늘이에게 "과 일정 생기면 미리 말할게"라고 했던 게 떠오른다. 지금이 그 "미리"다.',
+      },
     ],
     choices: [
       {
         id: 'keep',
-        text: '하늘이와의 약속을 지킨다 (체력 2)',
+        text: '하늘이에게 간다. 회의는 빠진다고 누나에게만 연락한다 (체력 2)',
         effects: [
           { energy: -2 },
           { rel: 'haneul', t: 6, group: 'promise' },
           { setFlag: 'promise_kept' },
           { setFlag: 'missed_meeting' },
+          { setFlag: 'heard_exchange' },
+          { setFlag: 'presenter_other' },
           { releaseReservation: 'pc' },
         ],
-        reaction: '"진짜 왔네?" 하늘이가 헤드셋을 벗으며 웃는다. 그날 떡볶이는 내가 샀다.',
+        reaction:
+          '하늘이는 PC방이 아니라 학교 앞 벤치에 앉아 있었다. 무릎 위에 서류 봉투. "일본 교환학생. 2학기부터 1년. 붙을지는 모르겠는데, 낼까 말까 고민 중이야." 하늘이가 처음으로 장난 없이 나를 본다. "…넌 어떻게 생각해? 솔직하게." 회의에서는 다른 동기가 내 동선안을 대신 발표했다고, 밤늦게 누나에게서 짧은 메시지가 왔다. "다음엔 네가 해."',
       },
       {
         id: 'change',
-        text: '하늘이에게 미리 사정을 말하고 약속을 미룬다',
-        effects: [{ rel: 'haneul', h: -1, t: -2 }, { setFlag: 'promise_changed' }, { releaseReservation: 'pc' }],
-        reaction: '"아 뭐야. …알았어. 다음엔 네가 쏴." 답장에 이모티콘이 없었다.',
+        text: '하늘이에게 미리 사정을 말하고, 회의에서 내 안을 직접 발표한다',
+        effects: [
+          { rel: 'haneul', h: -1, t: -2 },
+          { rel: 'seorin', t: 2, group: 'help' },
+          { setFlag: 'promise_changed' },
+          { setFlag: 'presented_plan' },
+          { releaseReservation: 'pc' },
+        ],
+        reaction:
+          '"…알았어. 회의 잘해." 하늘이는 그렇게 답하고 10분 뒤에 한 줄을 더 보냈다. "다음 주 화요일. 그날은 진짜야." 회의실에서 나는 처음으로 사람들 앞에서 내 이름이 적힌 안을 설명했다. 누나는 팔짱을 낀 채 끝까지 듣고 한 단어만 말했다. "통과."',
       },
       {
         id: 'both',
-        text: '회의에 들렀다가 PC방으로 달려간다 (체력 4)',
+        text: '두 사람에게 사정을 말하고 시간을 조정해 본다 (체력 4)',
         requires: { energyAfter: { cost: 4, min: -3 } },
         showLocked: true,
         lockedHint: '체력 부족 (행동 후 -3 미만)',
         effects: [
           { energy: -4 },
-          { rel: 'haneul', t: 6, group: 'promise' },
-          { rel: 'seorin', t: 1, group: 'help' },
+          { rel: 'haneul', t: 3, group: 'promise' },
           { setFlag: 'promise_kept' },
+          { setFlag: 'promise_adjusted' },
+          {
+            if: { rel: 'seorin', t: 20 },
+            then: [{ rel: 'seorin', t: 1, group: 'help' }, { setFlag: 'presented_plan' }],
+            else: [{ setFlag: 'presenter_other' }],
+          },
           { releaseReservation: 'pc' },
         ],
-        reaction: '숨을 헐떡이며 PC방에 들어서자 하늘이가 시계를 본다. "12분 지각. 그래도 인정."',
+        reaction:
+          '누나는 "회의는 회의야"라며 순서를 바꿔 주지 않았다. 동선안은 다른 동기가 발표했다. 나는 회의 중간에 빠져나와 하늘이에게 달려갔다. 40분 지각. 하늘이는 서류 봉투를 무릎에 올려 둔 채 말했다. "시간 없지? 그럼 반만 말할게. …나 일본 갈지도 몰라. 나머지는 다음에."',
+        reactionIf: [
+          {
+            if: { rel: 'seorin', t: 20 },
+            text: '누나는 잠깐 생각하더니 "네 순서 맨 앞. 15분."이라고 답했다. 나는 동선안을 설명하자마자 회의실을 나와 하늘이에게 달려갔다. 20분 지각. 하늘이는 서류 봉투를 무릎에 올려 둔 채 말했다. "시간 없지? 그럼 반만 말할게. …나 일본 갈지도 몰라. 나머지는 다음에."',
+          },
+        ],
       },
       {
         id: 'ditch',
@@ -485,9 +609,77 @@ export const EVENTS: EventDef[] = [
           { energy: -2 },
           { rel: 'haneul', h: -6, t: -10 },
           { setFlag: 'promise_broken' },
+          { setFlag: 'presented_plan' },
           { releaseReservation: 'pc' },
         ],
-        reaction: '밤 9시, 하늘이의 마지막 톡. "ㅇㅋ." 읽음 표시가 오래 남았다.',
+        reaction:
+          '회의는 잘 끝났다. 밤 9시, 하늘이의 마지막 톡. "ㅇㅋ." 읽음 표시가 오래 남았다. 일기장의 문장은 한 글자도 바뀌지 않았다.',
+      },
+    ],
+  },
+
+  /* ───── E07K: 토요일 벤치 (약속을 지킨 경우, 같은 주) ───── */
+  {
+    id: 'E07K',
+    title: '토요일 7시, 벤치',
+    week: { from: 7 },
+    when: { all: [{ flag: 'heard_exchange' }, { notFlag: 'promise_adjusted' }] },
+    order: 3,
+    portrait: PORTRAITS.haneul,
+    speaker: 'haneul',
+    text: [
+      '"…넌 어떻게 생각해? 솔직하게."',
+      '하늘이는 대답을 기다리는 동안 봉투 모서리만 접었다 폈다 한다. 늘 먼저 말을 끊던 애가 오늘은 가만히 기다린다.',
+    ],
+    choices: [
+      {
+        id: 'go',
+        text: '"가. 너 그거 오래 준비했잖아."',
+        effects: [{ rel: 'haneul', t: 3, group: 'talk' }, { setFlag: 'told_go' }],
+        reaction: '"역시 그렇게 말할 줄 알았어." 하늘이가 웃으며 일어선다. "떡볶이 먹으러 가자. 오늘은 내가 쏜다." 봉투를 쥔 손에 힘이 조금 들어가 있었다.',
+      },
+      {
+        id: 'ask',
+        text: '"네가 가고 싶은지부터 듣고 싶어."',
+        effects: [{ rel: 'haneul', h: 2, t: 2, group: 'talk' }, { setFlag: 'asked_her_mind' }],
+        reaction: '하늘이가 한참 말이 없다. "…모르겠어. 가고 싶은데, 여기 두고 가는 게 좀 걸려." 무엇이 걸리는지는 말하지 않았다. 대신 내 어깨를 한 번 툭 쳤다. "아, 몰라. 떡볶이나 먹자."',
+      },
+    ],
+  },
+
+  /* ───── E07R: 미뤄진 이야기 (사전 변경·일정 조정한 경우, 8주) ───── */
+  {
+    id: 'E07R',
+    title: '화요일, 미뤄진 이야기',
+    week: { from: 8 },
+    when: { any: [{ flag: 'promise_changed' }, { flag: 'promise_adjusted' }] },
+    order: 0,
+    portrait: PORTRAITS.haneul,
+    speaker: 'haneul',
+    text: ['화요일 저녁, 학교 앞 벤치. 하늘이가 먼저 와 있다. 무릎 위에 서류 봉투.'],
+    textIf: [
+      {
+        if: { flag: 'promise_changed' },
+        text: '"토요일엔 좀 서운했어. 근데 미리 말해 준 건… 고마웠어. 예전 너였으면 그냥 안 왔을 거야."',
+      },
+      {
+        if: { flag: 'promise_adjusted' },
+        text: '"토요일엔 너 숨넘어가는 거 보느라 반밖에 못 했잖아. 오늘은 끝까지 할게."',
+      },
+      { if: { flag: 'promise_pc' }, text: '"나, 일본 교환학생 지원하려고. 2학기부터 1년. 마감은 이번 주 금요일. …넌 어떻게 생각해?"' },
+    ],
+    choices: [
+      {
+        id: 'go',
+        text: '"가. 너 그거 오래 준비했잖아."',
+        effects: [{ rel: 'haneul', t: 3, group: 'talk' }, { setFlag: 'heard_exchange_late' }, { setFlag: 'told_go' }],
+        reaction: '하늘이가 피식 웃는다. "역시 그렇게 말할 줄 알았어." 그런데 봉투를 쥔 손에 힘이 조금 들어가 있었다.',
+      },
+      {
+        id: 'ask',
+        text: '"네가 가고 싶은지부터 듣고 싶어."',
+        effects: [{ rel: 'haneul', h: 2, t: 2, group: 'talk' }, { setFlag: 'heard_exchange_late' }, { setFlag: 'asked_her_mind' }],
+        reaction: '하늘이가 한참 말이 없다. "…모르겠어. 가고 싶은데, 여기 두고 가는 게 좀 걸려." 무엇이 걸리는지는 말하지 않았다.',
       },
     ],
   },
@@ -536,6 +728,12 @@ export const EVENTS: EventDef[] = [
       '축제 전날 밤. 근무표가 엉망이다. 같은 시간에 다섯 명이 겹치고, 아무도 없는 시간이 있다.',
       '설상가상으로 내일 쓸 재료 발주가 빠져 있었다.',
       '서린 누나가 근무표를 내 앞에 내려놓는다. "너 해."',
+      '누나는 밤을 새워서라도 몸으로 밀어붙이자는 쪽이고, 나는 표부터 다시 짜자는 쪽이다. "말 길게 할 시간 없어. 네 방식이면 네 방식대로 증명해."',
+    ],
+    textIf: [
+      { if: { flag: 'presented_plan' }, text: '"동선은 네가 짠 거니까 네가 끝까지 책임져. 난 재료 쪽 뛴다."' },
+      { if: { flag: 'presenter_other' }, text: '"토요일에 네 안 대신 발표한 애는 오늘 연락이 안 돼. 결국 너야."' },
+      { if: { flag: 'stayed_late' }, text: '어젯밤 새벽까지 같이 박스를 쌓던 누나가, 오늘은 내 쪽을 먼저 본다.' },
     ],
     choices: [
       {
@@ -595,13 +793,6 @@ export const EVENTS: EventDef[] = [
       { rel: 'seorin', h: 5, t: 5, narrative: true },
       { setFlag: 'recognized' },
       { setFlag: 'saw_recognition' },
-      {
-        notice: {
-          kind: 'diary',
-          title: '회귀자의 일기',
-          text: '그날 사람들은 처음으로 내 이름을 불렀다. 나는 그 목소리들을 듣느라, 오래전부터 내 이름을 불러 주던 사람을 못 봤다.',
-        },
-      },
     ],
     text: [
       '축제 첫날 밤 9시. 과 부스 앞에 줄이 골목까지 늘어섰다. 어제까지 엉망이던 근무표는 지금 내 손에 있다.',
@@ -609,6 +800,10 @@ export const EVENTS: EventDef[] = [
       '사람들 시선이 서린 누나에게 간다. 누나가 앞치마를 벗으며 고개로 나를 가리킨다.',
       '"내가 맡겼고, 얘가 해냈어. 다음에도 같이 할 거야."',
       '3초쯤 조용했다. 누군가 작게 "…복학생 형이?"라고 했다. 하늘이가 들고 있던 컵을 내려놓는 게 보였다.',
+    ],
+    textIf: [
+      { if: { flag: 'presented_plan' }, text: '누나가 한마디를 덧붙인다. "동선도 얘가 짰어. 회의 때 직접 설명한 거 기억하지?"' },
+      { if: { flag: 'interview_published' }, text: '"아, 학보에 나온 그 형이구나." 누군가 휴대폰으로 기사를 찾아 보여 준다.' },
     ],
     choices: [
       {
@@ -664,22 +859,27 @@ export const EVENTS: EventDef[] = [
     week: { from: 10 },
     when: { all: [{ flag: 'note_exchange' }, { rel: 'seoyun', met: true }] },
     portrait: PORTRAITS.seoyun,
+    onEnter: [{ setFlag: 'e10_seen' }],
     text: [
       '축제 이후 과 단톡방에서 내 이름이 자주 나온다. 인싸 무리가 금요일 술자리에 부른다.',
-      '같은 시간, 서윤이와의 스터디 약속이 있다. "금요일 7시 도서관, 잊지 마요."',
+      '같은 시간, 서윤이와의 스터디 약속이 있다. 약속을 먼저 잡은 건 서윤이었다. "금요일 7시 도서관이요. 이번엔 제가 질문 말고 제 얘기 할 차례예요."',
+    ],
+    textIf: [
+      { if: { flag: 'interview_honest' }, text: '"아, 그 인터뷰 기사요. 결국 안 냈어요. 그 얘기는 저만 갖고 있고 싶어서요."' },
     ],
     choices: [
       {
         id: 'keep',
         text: '서윤이와의 약속을 지킨다',
-        effects: [{ rel: 'seoyun', t: 4, group: 'promise' }, { setFlag: 'e10_good' }],
-        reaction: '"진짜 왔네요." 서윤이가 노트에 뭔가를 적는다. 날짜와 함께. "약속 지킨 사람."',
+        effects: [{ rel: 'seoyun', t: 4, group: 'promise' }, { setFlag: 'e10_good' }, { setFlag: 'seoyun_shared_goal' }],
+        reaction:
+          '"진짜 왔네요." 서윤이가 노트에 날짜를 적는다. "약속 지킨 사람." 그리고 정말로 자기 얘기를 했다. 졸업 전에 사람들 인터뷰를 모아 사진집을 내고 싶다고. "출판사에 원고 보낼 거예요. 떨어져도 계속 보낼 거고요." 조용한 목소리인데, 물러설 생각이 하나도 없는 말투였다.',
       },
       {
         id: 'party',
         text: '술자리에 간다',
         effects: [{ stat: 'popularity', delta: 5 }, { rel: 'seoyun', h: -2, t: -3 }],
-        reaction: '재밌었다. 새벽에 확인한 톡에는 "괜찮아요, 다음에 해요"만 와 있었다.',
+        reaction: '재밌었다. 새벽에 확인한 톡에는 "괜찮아요, 다음에 해요"만 와 있었다. 서윤이가 하려던 자기 얘기는, 그 뒤로 다시 나오지 않았다.',
       },
       {
         id: 'invite',
@@ -704,9 +904,20 @@ export const EVENTS: EventDef[] = [
     week: { from: 10 },
     when: { notFlag: 'note_exchange' },
     portrait: PORTRAITS.haneul,
+    onEnter: [{ setFlag: 'e10_seen' }],
     text: [
       '축제 이후 과 단톡방에서 내 이름이 자주 나온다. 인싸 무리가 금요일 술자리에 부른다.',
-      '같은 시간, 하늘이와 밥 약속이 있다. "금요일 국밥. 네가 쏘는 거다."',
+      '같은 시간, 하늘이와 밥 약속이 있다. 하늘이가 먼저 잡은 약속이다. "금요일 국밥. 네가 쏘는 거다."',
+    ],
+    textIf: [
+      {
+        if: { any: [{ flag: 'heard_exchange' }, { flag: 'heard_exchange_late' }, { flag: 'promise_adjusted' }] },
+        text: '"그리고 교환학생 서류 결과 나왔어. 그날 얘기해 줄게."',
+      },
+      {
+        if: { flag: 'diary_d_friday_shown' },
+        text: '일기장의 문장이 떠오른다. "다음 주 금요일, 나는 약속을 술자리로 바꿨다."',
+      },
     ],
     choices: [
       {
@@ -714,6 +925,12 @@ export const EVENTS: EventDef[] = [
         text: '하늘이와의 약속을 지킨다',
         effects: [{ rel: 'haneul', t: 4, group: 'promise' }, { setFlag: 'e10_good' }],
         reaction: '"뭐야, 인싸 됐다며. 나랑 국밥 먹어도 돼?" 하늘이가 웃으며 깍두기를 덜어 준다.',
+        reactionIf: [
+          {
+            if: { any: [{ flag: 'heard_exchange' }, { flag: 'heard_exchange_late' }, { flag: 'promise_adjusted' }] },
+            text: '"뭐야, 인싸 됐다며. 나랑 국밥 먹어도 돼?" 하늘이가 깍두기를 덜어 주며 휴대폰 화면을 보여 준다. 합격 통지. "붙었어." 그런데 하늘이는 축하한다는 말을 기다리지 않고 화제를 돌렸다. "…근데 아직 간다고는 안 했어."',
+          },
+        ],
       },
       {
         id: 'party',
@@ -841,6 +1058,16 @@ export const EVENTS: EventDef[] = [
       '(캔을 따다 멈추고) "…웃기지. 나 그 말 듣고 좀 짜증났어. 왜 짜증났는지 모르겠어."',
       '장난이 붙어 있지 않은 목소리였다.',
     ],
+    textIf: [
+      {
+        if: { flag: 'asked_her_mind' },
+        text: '"너 그때 나한테 \'가고 싶은지부터 듣고 싶다\'고 했잖아. …그 질문 때문에 아직 서류 확정을 못 했어. 여기 두고 가는 게 뭔지, 요즘 좀 알 것 같아서."',
+      },
+      {
+        if: { flag: 'told_go' },
+        text: '"너 그때 가라고 했잖아. 맞는 말인데… 이상하게 그 말이 좀 서운했어. 왜 서운했는지 모르겠어."',
+      },
+    ],
     choices: [
       {
         id: 'ask',
@@ -885,6 +1112,16 @@ export const EVENTS: EventDef[] = [
     order: 2,
     portrait: PORTRAITS.haneul,
     text: ['편의점 앞. 하늘이가 캔을 따며 나를 위아래로 훑는다.', '"너 요즘 좀 달라졌다? 뭐, 좋은 거겠지."'],
+    textIf: [
+      {
+        if: { any: [{ flag: 'heard_exchange' }, { flag: 'heard_exchange_late' }, { flag: 'promise_adjusted' }] },
+        text: '"교환학생 출국 서류 냈어. 8월이야." 하늘이는 그 말을 캔 따는 소리에 섞어서 했다.',
+      },
+      {
+        if: { flag: 'promise_broken' },
+        text: '하늘이는 토요일 얘기를 한 번도 꺼내지 않았다. 그날 하려던 말이 뭐였는지, 나는 아직도 모른다.',
+      },
+    ],
     choices: [{ id: 'ok', text: '"그런가."', effects: [{ setFlag: 'awareness_pending' }, { setFlag: 'e11_done' }], reaction: '하늘이는 더 묻지 않았다. 아직은.' }],
   },
 

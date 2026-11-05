@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { calcRelChange, firstImpressionH, applyWeeklyCap, roundHalfUp } from './rules'
-import { acceptMission, allocatePoints, checkPlan, choose, currentEvent, currentStage, newGame, runWeek } from './engine'
+import {
+  acceptMission,
+  allocatePoints,
+  checkPlan,
+  choose,
+  currentEvent,
+  currentStage,
+  diaryPages,
+  newGame,
+  runWeek,
+} from './engine'
 import type { GameState } from './types'
 
 /** 그 주 사건을 정해진 선택(없으면 첫 선택 가능 항목)으로 모두 처리 */
@@ -93,6 +103,81 @@ describe('포인트·미션', () => {
     s = choose(s, 'pushy')
     expect(s.rels.haneul.h).toBeLessThan(h0)
     expect(s.flags).toContain('rom_haneul_1_blocked')
+  })
+})
+
+describe('이야기 분기·일기', () => {
+  const diaryResult = (s: GameState, id: string) => diaryPages(s).find((p) => p.id === id)?.result
+
+  it('프롤로그 시점에 "7주 토요일" 일기가 원래 미래로 공개되고 아직 결과는 없음', () => {
+    const s = newGame()
+    const page = diaryPages(s).find((p) => p.id === 'd_saturday')
+    expect(page).toBeDefined()
+    expect(page?.result).toBeUndefined()
+  })
+
+  it('E01에서 약속을 안 하면 하늘이가 5주에 먼저 약속을 잡음', () => {
+    const s = play({}, { E01: 'lonely' }, 5)
+    expect(s.firedEvents).toContain('E05H')
+    expect(s.flags).toContain('promise_pc')
+  })
+
+  it('약속을 지키면: 교환학생 이야기를 듣고 벤치 장면 → 일기 문장 변경', () => {
+    const s = play({}, { E01: 'promise', E07: 'keep', E07K: 'ask' }, 7)
+    expect(s.firedEvents).toContain('E07K')
+    expect(s.flags).toContain('asked_her_mind')
+    expect(diaryResult(s, 'd_saturday')?.kind).toBe('changed')
+    expect(diaryResult(s, 'd_saturday')?.text).toContain('교환학생')
+  })
+
+  it('미리 말하고 회의에 가면: 내 안을 발표하고, 하늘 이야기는 8주 화요일로 이어짐', () => {
+    let s = play({}, { E01: 'promise', E07: 'change' }, 7)
+    expect(s.flags).toContain('presented_plan')
+    expect(diaryResult(s, 'd_saturday')).toBeUndefined() // 아직 이야기를 듣지 못함
+    s = play({}, { E01: 'promise', E07: 'change', E07R: 'go' }, 8)
+    expect(s.firedEvents).toContain('E07R')
+    expect(diaryResult(s, 'd_saturday')?.text).toContain('한 주 늦게')
+  })
+
+  it('연락 없이 회의에 가면: 일기는 "기록대로 되었다"', () => {
+    const s = play({}, { E01: 'promise', E07: 'ditch' }, 7)
+    expect(diaryResult(s, 'd_saturday')?.kind).toBe('kept')
+  })
+
+  it('일정 조정: 서린 신뢰가 낮으면 발표는 다른 사람, 하늘 신뢰는 +3만', () => {
+    let s = play({}, { E01: 'promise' }, 6)
+    s = runWeek(s, []).state
+    while (currentEvent(s)?.id !== 'E07') s = choose(s, currentEvent(s)!.choices[0].id)
+    const t0 = s.rels.haneul.t
+    s = choose(s, 'both')
+    expect(s.flags).toContain('presenter_other')
+    expect(s.flags).not.toContain('presented_plan')
+    expect(s.rels.haneul.t - t0).toBeLessThanOrEqual(3)
+    expect(s.lastResult?.reaction).toContain('회의는 회의야')
+  })
+
+  it('서윤이 먼저 인터뷰를 제안 → 수락하면 4주 인터뷰 장면, 일기 문장 변경', () => {
+    const s = play({}, { E02: 'asked', E03: 'interview', E04S: 'honest' }, 4)
+    expect(s.firedEvents).toContain('E04S')
+    expect(s.flags).toContain('interview_honest')
+    expect(diaryResult(s, 'd_classmate')?.text).toContain('먼저 나에게 질문')
+  })
+
+  it('펜만 빌려준 2주차에는 일기가 아직 이름을 말하지 않음', () => {
+    const s = play({}, { E02: 'asked' }, 2)
+    expect(diaryResult(s, 'd_classmate')).toBeUndefined()
+  })
+
+  it('만나지 않은 서린은 일기에 나오지 않음 (5주 전)', () => {
+    const s = play({}, {}, 4)
+    expect(diaryPages(s).some((p) => p.id === 'd_festival')).toBe(false)
+  })
+
+  it('일기 결과 알림은 페이지당 한 번만', () => {
+    let s = play({}, { E01: 'promise', E07: 'ditch' }, 7)
+    const before = s.flags.filter((f) => f.startsWith('diary_d_saturday_o')).length
+    s = play({}, { E01: 'promise', E07: 'ditch' }, 9)
+    expect(s.flags.filter((f) => f.startsWith('diary_d_saturday_o')).length).toBe(before)
   })
 })
 

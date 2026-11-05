@@ -19,6 +19,8 @@ import {
   isRestWeek,
   load,
   missionList,
+  diaryPages,
+  eventText,
   newGame,
   reservedEnergy,
   runWeek,
@@ -144,7 +146,7 @@ export default function App() {
                 <div className="event-text">
                   <h2>{ev.title}</h2>
                   {state.reactionLine && <p className="reaction-line">{state.reactionLine}</p>}
-                  {ev.text.map((t, i) => (
+                  {eventText(state, ev).map((t, i) => (
                     <p key={i} className={t.startsWith('"') ? 'line' : ''}>
                       {t}
                     </p>
@@ -174,6 +176,7 @@ export default function App() {
         </section>
 
         <aside className="col">
+          <Diary state={state} />
           <Relationships state={state} />
           <section className="card log">
             <h3>기록</h3>
@@ -466,6 +469,32 @@ function Planner({
         </button>
       </div>
     </div>
+  )
+}
+
+/* ───────── 회귀자의 일기 ───────── */
+
+function Diary({ state }: { state: GameState }) {
+  const pages = diaryPages(state)
+  if (!pages.length) return null
+  return (
+    <section className="card diary">
+      <h3>회귀자의 일기</h3>
+      {pages.map((p) => (
+        <div className="diary-page" key={p.id}>
+          <b>{p.title}</b>
+          <p className={p.result?.kind === 'changed' ? 'struck' : ''}>{p.original}</p>
+          {p.result ? (
+            <p className={`diary-result ${p.result.kind}`}>
+              {p.result.kind === 'changed' ? '→ ' : ''}
+              {p.result.text}
+            </p>
+          ) : (
+            <p className="muted">아직 일어나지 않은 미래</p>
+          )}
+        </div>
+      ))}
+    </section>
   )
 }
 
