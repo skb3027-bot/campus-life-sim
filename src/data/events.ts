@@ -6,6 +6,7 @@ import type { Condition, Effect, EventDef } from '../game/types'
 import { PORTRAITS } from './characters'
 import { ROMANCE_EVENTS } from './romance'
 import { ACTIVITY_EVENTS } from './activityEvents'
+import { STORY_EVENTS } from './storyEvents'
 
 const CONFIDENT: Condition = { mental: { min: 50 } }
 const CONFIDENT_HINT = '멘탈 50 이상 필요'
@@ -1078,6 +1079,18 @@ export const EVENTS: EventDef[] = [
         text: '"아, 그 선배? 안 만났어. 너가 별로라며. …그 말이 왜 계속 생각났는지 모르겠네."',
       },
       {
+        if: { flag: 'rival_challenged' },
+        text: '"도현 선배가 그러더라. 너한테 무슨 사이냐고 물었더니 \'그걸 왜 선배한테 말해야 돼요\' 했다며. …너 그런 말도 할 줄 알아?"',
+      },
+      {
+        if: { flag: 'rival_said_friend' },
+        text: '"도현 선배가 그러던데. 너가 나랑 그냥 친구라고 했다고." 하늘이가 캔을 꽉 쥔다. "…맞는 말인데. 그 말을 너한테서 들으니까 좀 이상했어."',
+      },
+      {
+        if: { flag: 'festival_with_haneul' },
+        text: '"축제 때 너 부스 버리고 나 찾아왔잖아. 그 사진, 아직 내 앨범 맨 위에 있어."',
+      },
+      {
         if: { flag: 'said_meet_senior' },
         text: '"그 선배랑 밥 한 번 먹었어. 네가 만나 보라며. …재미없더라. 너랑 먹는 국밥이 더 나았어."',
       },
@@ -1151,14 +1164,17 @@ export const EVENTS: EventDef[] = [
       '여름방학이 시작된다.',
     ],
     choices: [
-      { id: 'work', text: '방학엔 알바로 돈을 모은다', effects: [{ setFlag: 'summer_work' }], reaction: '2학기에 쓸 돈을 모아 두자.' },
-      { id: 'trip', text: '방학엔 여행을 간다', effects: [{ setFlag: 'summer_trip' }], reaction: '어디로 갈지, 누구와 갈지는 아직 모른다.' },
-      { id: 'self', text: '방학엔 자기관리에 집중한다', effects: [{ setFlag: 'summer_self' }], reaction: '2학기엔 더 달라진 모습으로.' },
+      { id: 'work', text: '방학엔 알바로 돈을 모은다', effects: [{ setFlag: 'summer_work' }, { setFlag: 'summer_plan_set' }], reaction: '2학기에 쓸 돈을 모아 두자.' },
+      { id: 'trip', text: '방학엔 여행을 간다', effects: [{ setFlag: 'summer_trip' }, { setFlag: 'summer_plan_set' }], reaction: '어디로 갈지, 누구와 갈지는 아직 모른다.' },
+      { id: 'self', text: '방학엔 자기관리에 집중한다', effects: [{ setFlag: 'summer_self' }, { setFlag: 'summer_plan_set' }], reaction: '2학기엔 더 달라진 모습으로.' },
     ],
   },
 
   /* ───── 연애 미션 장면 (data/romance.ts) ───── */
   ...ROMANCE_EVENTS,
+
+  /* ───── 라이벌·마지막 페이지 (data/storyEvents.ts) ───── */
+  ...STORY_EVENTS,
 
   /* ───── 활동 사건 (data/activityEvents.ts) ───── */
   ...ACTIVITY_EVENTS,

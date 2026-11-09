@@ -229,6 +229,27 @@ describe('활동에 따라 달라지는 상황', () => {
   })
 })
 
+describe('라이벌·마지막 페이지', () => {
+  it('4주에 차도현 등장 → 6주 떠보기 → 9주 축제 장면 → 일기 사진 페이지 확정', () => {
+    const s = play({}, { ER_intro: 'polite', ER_probe: 'friend', ER_festival: 'find_haneul' }, 9)
+    expect(s.firedEvents).toEqual(expect.arrayContaining(['ER_intro', 'ER_probe', 'ER_festival']))
+    expect(s.flags).toContain('rival_said_friend')
+    expect(diaryPages(s).find((p) => p.id === 'd_photo')?.result?.text).toContain('나였다')
+  })
+
+  it('축제에서 일만 하면 사진 기록은 그대로', () => {
+    const s = play({}, { ER_festival: 'work' }, 9)
+    expect(diaryPages(s).find((p) => p.id === 'd_photo')?.result?.kind).toBe('kept')
+  })
+
+  it('종강 뒤 마지막 페이지가 나오고 일기에 남음', () => {
+    const s = play({}, { E12: 'work', EZ_lastpage: 'compare' })
+    expect(s.firedEvents).toContain('EZ_lastpage')
+    expect(s.flags).toContain('lastpage_compare')
+    expect(diaryPages(s).some((p) => p.id === 'd_lastpage')).toBe(true)
+  })
+})
+
 describe('체력·과로', () => {
   it('정상 소진 0은 허용, -3까지 무리 가능, -4는 불가', () => {
     const s = newGame(SEED)

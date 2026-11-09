@@ -413,14 +413,14 @@ export const ACTIVITY_EVENTS: EventDef[] = [
   A({
     id: 'AM_senior',
     title: '하늘의 질문',
-    week: { from: 3, to: 11 },
-    when: { didActivity: 'meal' },
-    chance: 0.6,
+    week: { from: 5, to: 11 },
+    when: { all: [{ didActivity: 'meal' }, { flag: 'rival_met' }] },
+    chance: 0.7,
     portrait: PORTRAITS.haneul,
     speaker: 'haneul',
     text: [
       '국밥집. 하늘이가 깍두기를 뒤적이다 불쑥 묻는다.',
-      '"야, 과 선배가 자꾸 밥 먹자고 연락하는데. 너라면 어떻게 할 거 같아?" 장난처럼 말하지만 눈은 웃지 않는다.',
+      '"야, 도현 선배가 자꾸 밥 먹자고 연락하는데. 너라면 어떻게 할 거 같아?" 장난처럼 말하지만 눈은 웃지 않는다.',
     ],
     choices: [
       {

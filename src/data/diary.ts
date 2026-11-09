@@ -79,6 +79,36 @@ export const DIARY: DiaryEntry[] = [
     ],
   },
   {
+    id: 'd_photo',
+    title: '축제 사진',
+    showWhen: { flag: 'rival_met' },
+    original: '축제 날, 하늘이 프로필 사진이 바뀌었다. 부스 앞, 하늘이 옆에는 도현 선배가 서 있었다. 나는 그 사진에 "좋아요"를 눌렀다.',
+    outcomes: [
+      {
+        when: { flag: 'festival_with_haneul' },
+        kind: 'changed',
+        text: '축제 날, 하늘이 프로필 사진이 바뀌었다. 막걸리 잔을 뺏어 든 바보 같은 얼굴. 하늘이 옆에 있는 건 나였다.',
+      },
+      {
+        when: { flag: 'rival_respect' },
+        kind: 'changed',
+        text: '축제 날, 도현 선배와 악수를 했다. 사진은 아직 모르겠다. 적어도 이번엔 "좋아요"만 누르고 있지는 않았다.',
+      },
+      {
+        when: { flag: 'ER_festival_done' },
+        kind: 'kept',
+        text: '기록대로 되었다. 사진 속 하늘이 옆에는 도현 선배가 있었다.',
+      },
+    ],
+  },
+  {
+    id: 'd_lastpage',
+    title: '마지막 페이지 · 내 글씨가 아님',
+    showWhen: { flag: 'lastpage_seen' },
+    original: '"2학기 첫날, 너는 또 같은 선택을 하게 될 거야. 이번에는 내가 먼저 기다리지 않을게."',
+    outcomes: [],
+  },
+  {
     id: 'd_friday',
     title: '그 주 금요일',
     showWhen: { all: [{ flag: 'recognized' }, { notFlag: 'note_exchange' }] },

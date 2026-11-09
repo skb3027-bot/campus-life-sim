@@ -568,6 +568,12 @@ function SeasonEnd({ state, onRestart }: { state: GameState; onRestart: () => vo
           <p>
             여름방학, <b>{CHARACTERS[top].name}</b>와(과)의 이야기가 이어집니다.
             <br />
+            {state.flags.includes('lastpage_seen') && (
+              <>
+                <i>일기장의 마지막 페이지를 쓴 사람은 누구인가.</i>
+                <br />
+              </>
+            )}
             <span className="muted">시즌 2 · 준비 중</span>
           </p>
         </div>
